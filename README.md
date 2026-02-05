@@ -1,6 +1,6 @@
-### California Housing Price Prediction
+# California Housing Price Prediction
 
-### Software and Tools Requirements
+## Software and Tools Requirements
 
 [Github Account](https://github.com)
 [Heroku Account](https://heroku.com)
