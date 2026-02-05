@@ -1,3 +1,169 @@
-<h1>
-    Hello World!
-</h1>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>California House Price Predictor</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f6f7fb; color: #111; }
+    .wrap { max-width: 760px; margin: 40px auto; padding: 0 16px; }
+    .card { background: #fff; border: 1px solid #e6e8ef; border-radius: 12px; padding: 24px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    p { margin: 0 0 18px; color: #444; }
+
+    form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    label { font-size: 12px; color: #333; display: block; margin-bottom: 6px; }
+
+    /* Key fixes: border-box + no overflow + slightly smaller padding/font */
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9px 10px;
+      border: 1px solid #d7dbe7;
+      border-radius: 10px;
+      font-size: 13px;
+      overflow: hidden;
+    }
+    input:focus { outline: none; border-color: #6c7cff; box-shadow: 0 0 0 3px rgba(108,124,255,0.15); }
+
+    .full { grid-column: 1 / -1; }
+    button { padding: 12px 14px; border: 0; border-radius: 10px; font-size: 14px; cursor: pointer; }
+    .btn-primary { background: #111827; color: #fff; }
+    .btn-secondary { background: #eef2ff; color: #1f2a44; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    .hint { font-size: 12px; color: #666; margin-top: 6px; }
+    .result { margin-top: 18px; padding: 14px; border-radius: 10px; background: #f3f4f6; border: 1px solid #e5e7eb; }
+    .result strong { display: block; margin-bottom: 6px; }
+    .footer { margin-top: 14px; font-size: 12px; color: #666; }
+
+    /* Mobile */
+    @media (max-width: 640px) { form { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>California House Price Predictor</h1>
+      <p>Enter feature values and click Predict to get a predicted house price.</p>
+
+      <form id="predictForm">
+        <div>
+          <label for="MedInc">MedInc</label>
+          <input id="MedInc" type="number" step="any" placeholder="e.g. 4.2" required />
+          <div class="hint">Median income in block group</div>
+        </div>
+
+        <div>
+          <label for="HouseAge">HouseAge</label>
+          <input id="HouseAge" type="number" step="any" placeholder="e.g. 28" required />
+          <div class="hint">Median house age</div>
+        </div>
+
+        <div>
+          <label for="AveRooms">AveRooms</label>
+          <input id="AveRooms" type="number" step="any" placeholder="e.g. 5.3" required />
+          <div class="hint">Average rooms per household</div>
+        </div>
+
+        <div>
+          <label for="Population">Population</label>
+          <input id="Population" type="number" step="any" placeholder="e.g. 1200" required />
+          <div class="hint">Population of block group</div>
+        </div>
+
+        <div>
+          <label for="AveOccup">AveOccup</label>
+          <input id="AveOccup" type="number" step="any" placeholder="e.g. 3.1" required />
+          <div class="hint">Average occupancy per household</div>
+        </div>
+
+        <div>
+          <label for="Latitude">Latitude</label>
+          <input id="Latitude" type="number" step="any" placeholder="e.g. 34.05" required />
+          <div class="hint">Latitude</div>
+        </div>
+
+        <div>
+          <label for="Longitude">Longitude</label>
+          <input id="Longitude" type="number" step="any" placeholder="e.g. -118.24" required />
+          <div class="hint">Longitude</div>
+        </div>
+
+        <div class="full row">
+          <button class="btn-primary" type="button" id="predictBtn">Predict</button>
+          <button class="btn-secondary" type="button" id="fillExampleBtn">Fill Example</button>
+        </div>
+      </form>
+
+      <div class="result" id="apiResult" style="display:none;">
+        <strong>Result</strong>
+        <div id="apiResultText"></div>
+      </div>
+
+      <div class="footer">
+        Predict sends JSON to <code>/predict_api</code>.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function getValues() {
+      const fields = ["MedInc","HouseAge","AveRooms","Population","AveOccup","Latitude","Longitude"];
+      const data = {};
+      for (const f of fields) {
+        const el = document.getElementById(f);
+        data[f] = el.value === "" ? null : Number(el.value);
+      }
+      return data;
+    }
+
+    document.getElementById("fillExampleBtn").addEventListener("click", () => {
+      document.getElementById("MedInc").value = 4.2;
+      document.getElementById("HouseAge").value = 28;
+      document.getElementById("AveRooms").value = 5.3;
+      document.getElementById("Population").value = 1200;
+      document.getElementById("AveOccup").value = 3.1;
+      document.getElementById("Latitude").value = 34.05;
+      document.getElementById("Longitude").value = -118.24;
+    });
+
+    document.getElementById("predictBtn").addEventListener("click", async () => {
+      const payload = { data: getValues() };
+
+      for (const k in payload.data) {
+        if (payload.data[k] === null || Number.isNaN(payload.data[k])) {
+          alert("Please fill in all fields.");
+          return;
+        }
+      }
+
+      const apiBox = document.getElementById("apiResult");
+      const apiText = document.getElementById("apiResultText");
+      apiBox.style.display = "block";
+      apiText.textContent = "Predicting...";
+
+      try {
+        const res = await fetch("/predict_api", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const t = await res.text();
+          apiText.textContent = "Error: " + t;
+          return;
+        }
+
+        const value = await res.json();
+        const price = (Number(value) * 100000).toFixed(2);
+        apiText.textContent = "Predicted House Price: $ " + price;
+      } catch (e) {
+        apiText.textContent = "Error: " + e;
+      }
+    });
+  </script>
+</body>
+</html>
