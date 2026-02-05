@@ -15,7 +15,6 @@
 
     label { font-size: 12px; color: #333; display: block; margin-bottom: 6px; }
 
-    /* Key fixes: border-box + no overflow + slightly smaller padding/font */
     input {
       width: 100%;
       box-sizing: border-box;
@@ -33,12 +32,10 @@
     .btn-secondary { background: #eef2ff; color: #1f2a44; }
     .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-    .hint { font-size: 12px; color: #666; margin-top: 6px; }
+    .hint { font-size: 12px; color: #666; margin-top: 6px; line-height: 1.35; }
     .result { margin-top: 18px; padding: 14px; border-radius: 10px; background: #f3f4f6; border: 1px solid #e5e7eb; }
     .result strong { display: block; margin-bottom: 6px; }
-    .footer { margin-top: 14px; font-size: 12px; color: #666; }
 
-    /* Mobile */
     @media (max-width: 640px) { form { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -52,13 +49,13 @@
         <div>
           <label for="MedInc">MedInc</label>
           <input id="MedInc" type="number" step="any" placeholder="e.g. 4.2" required />
-          <div class="hint">Median income in block group</div>
+          <div class="hint">Median income in 10k USD units<br>Example 4.2 means about 42,000</div>
         </div>
 
         <div>
           <label for="HouseAge">HouseAge</label>
           <input id="HouseAge" type="number" step="any" placeholder="e.g. 28" required />
-          <div class="hint">Median house age</div>
+          <div class="hint">Median house age in years</div>
         </div>
 
         <div>
@@ -70,7 +67,7 @@
         <div>
           <label for="Population">Population</label>
           <input id="Population" type="number" step="any" placeholder="e.g. 1200" required />
-          <div class="hint">Population of block group</div>
+          <div class="hint">Block group population<br>Typically 600 to 3000 people</div>
         </div>
 
         <div>
@@ -97,13 +94,16 @@
         </div>
       </form>
 
+      {% if prediction_text %}
+      <div class="result">
+        <strong>Result</strong>
+        <div>{{ prediction_text }}</div>
+      </div>
+      {% endif %}
+
       <div class="result" id="apiResult" style="display:none;">
         <strong>Result</strong>
         <div id="apiResultText"></div>
-      </div>
-
-      <div class="footer">
-        Predict sends JSON to <code>/predict_api</code>.
       </div>
     </div>
   </div>
@@ -139,10 +139,10 @@
         }
       }
 
-      const apiBox = document.getElementById("apiResult");
-      const apiText = document.getElementById("apiResultText");
-      apiBox.style.display = "block";
-      apiText.textContent = "Predicting...";
+      const box = document.getElementById("apiResult");
+      const text = document.getElementById("apiResultText");
+      box.style.display = "block";
+      text.textContent = "Predicting...";
 
       try {
         const res = await fetch("/predict_api", {
@@ -153,15 +153,15 @@
 
         if (!res.ok) {
           const t = await res.text();
-          apiText.textContent = "Error: " + t;
+          text.textContent = "Error: " + t;
           return;
         }
 
         const value = await res.json();
         const price = (Number(value) * 100000).toFixed(2);
-        apiText.textContent = "Predicted House Price: $ " + price;
+        text.textContent = "Predicted House Price: $ " + price;
       } catch (e) {
-        apiText.textContent = "Error: " + e;
+        text.textContent = "Error: " + e;
       }
     });
   </script>
