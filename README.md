@@ -1,6 +1,6 @@
 # California Housing Price Prediction
 
-A regression project that predicts California district median house values from socioeconomic and geographic features. This repo includes a modeling notebook and a small web demo for interactive predictions.
+A regression project that predicts California district median house values from socioeconomic and geographic features. This repo includes a modeling notebook and a small [web demo](https://californiahousepricing-c6u8.onrender.com/) for interactive predictions.
 
 ## What this project does
 
